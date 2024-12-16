@@ -83,6 +83,10 @@ endif
 lint:
 	docker run --rm -v $(shell pwd):/app -w /app golangci/golangci-lint:v1.40.0 golangci-lint run -v --max-issues-per-linter=0 --max-same-issues=0
 
+.PHONY: docker-test
+docker-test:
+	docker run --rm -v $(shell pwd):/app -w /app golang:1.17 make test
+
 .PHONY: install
 install: framework   ## builds and installs the binaries of the APIKit in $GOPATH/bin
 ifeq ($(OS), Windows_NT)
