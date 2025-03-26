@@ -66,3 +66,4 @@ fabric.properties
 .cover
 
 cmd/generate/generate
+.direnv
