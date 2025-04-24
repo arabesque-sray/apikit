@@ -53,5 +53,5 @@ type ErrOnUnknownResponseCode struct {
 }
 
 func (err *ErrOnUnknownResponseCode) Error() string {
-	return fmt.Sprintf(err.Message)
+	return err.Message
 }
