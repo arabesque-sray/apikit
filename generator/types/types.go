@@ -53,7 +53,7 @@ func ConvertSimpleType(typ string, format string) string {
 }
 
 // MatchTypes verifies types falls into the same primitive type category
-func MatchTypes(param interface{}, typ, format string) bool {
+func MatchTypes(param any, typ, format string) bool {
 	if typ == "number" || typ == "float" || typ == "double" {
 		if _, ok := param.(float64); ok {
 			return true
@@ -156,7 +156,7 @@ func NewMap(name string, required bool, elementType *Type) *Type {
 	return typ
 }
 
-func NewEnum(name string, required bool, values []interface{}) (*Type, error) {
+func NewEnum(name string, required bool, values []any) (*Type, error) {
 
 	if len(values) == 0 {
 		return nil, errors.New("enum is empty")
@@ -207,13 +207,14 @@ func makeStringValidations(name, format string, validations *spec.CommonValidati
 	var tags []string
 	var validator *RegexValidator
 
-	if format == openapi.UUID {
+	switch format {
+	case openapi.UUID:
 		tags = generateStringRestriction(validations.MaxLength, validations.MinLength, format)
 		validator, err = generateRegexRestriction(name, xregex.UUID)
-	} else if format == openapi.URL {
+	case openapi.URL:
 		tags = generateStringRestriction(validations.MaxLength, validations.MinLength, format)
 		validator, err = generateRegexRestriction(name, xregex.URL)
-	} else {
+	default:
 		tags = generateStringRestriction(validations.MaxLength, validations.MinLength, format)
 		validator, err = generateRegexRestriction(name, validations.Pattern)
 	}
@@ -252,12 +253,13 @@ func FromSimpleSchema(name string, schema *spec.SimpleSchema, required bool, val
 	var tags []string
 	var validator *RegexValidator
 	if validations != nil {
-		if typ == "string" {
+		switch typ {
+		case "string":
 			tags, validator, err = makeStringValidations(name, schema.Format, validations)
 			if err != nil {
 				return nil, errors.Wrap(err, "error creating string restrictions")
 			}
-		} else if typ == "integer" {
+		case "integer":
 			tags = generateIntegerRestriction(validations.Minimum, validations.Maximum, validations.ExclusiveMinimum, validations.ExclusiveMaximum)
 		}
 	}
@@ -377,7 +379,7 @@ func referedType(name string, schema *spec.Schema, required bool, findSchemaFunc
 			return nil, errors.Errorf("schema ref '%s' not found", schema.Ref.GetURL())
 		}
 
-		if referencedSchema.Enum != nil && len(referencedSchema.Enum) != 0 {
+		if len(referencedSchema.Enum) != 0 {
 			return New(Simple, name, identifier.MakeIdentifier(strings.Title(ref[1])), required, false), nil
 		} else {
 			return New(Simple, name, identifier.MakeIdentifier(strings.Title(ref[1])), required, true), nil
@@ -478,13 +480,14 @@ func (typ *Type) WriteTo(file *file.File) error {
 
 			code := jen.Id(element.Name)
 
-			if element.Type.Composit == Simple || element.Type.Composit == Enum {
+			switch element.Type.Composit {
+			case Simple, Enum:
 				if !element.Type.Required {
 					code.Op("*")
 				}
-			} else if element.Type.Composit == Array {
+			case Array:
 				code.Index()
-			} else if element.Type.Composit == Map {
+			case Map:
 				code.Map(jen.String())
 			}
 

@@ -1,11 +1,12 @@
 package generator
 
 import (
+	"os"
+	"path/filepath"
+
 	"github.com/ExperienceOne/apikit/framework"
 	"github.com/ExperienceOne/apikit/generator/openapi"
 	"github.com/pkg/errors"
-	"io/ioutil"
-	"path/filepath"
 )
 
 const (
@@ -109,7 +110,7 @@ func (gen *ApiGenerator) generate(path, pkg string, client, server, generateProm
 		return errors.Wrap(err, "error getting framework source code")
 	}
 
-	if err := ioutil.WriteFile(filepath.Join(path, frameworkFile), source, 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(path, frameworkFile), source, 0644); err != nil {
 		return errors.Wrap(err, "error persisting framework code")
 	}
 
