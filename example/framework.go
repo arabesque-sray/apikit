@@ -1132,14 +1132,20 @@ func (server *Server) Start(port int, routes []RouteDescription) error {
 	return httpServer.ListenAndServe()
 }
 
-func (server *Server) Stop() error {
+func (server *Server) Shutdown(ctx context.Context) error {
 
 	if server.server != nil {
-		deadline, _ := context.WithTimeout(context.TODO(), 30*time.Second)
-		return server.server.Shutdown(deadline)
+		return server.server.Shutdown(ctx)
 	}
 
 	return nil
+}
+
+func (server *Server) Stop() error {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	return server.Shutdown(ctx)
 }
 
 func errorHandler(logf fault.LogFunc) func(c *routing.Context) (err error) {

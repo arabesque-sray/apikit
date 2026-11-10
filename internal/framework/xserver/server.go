@@ -197,14 +197,25 @@ func (server *Server) Start(port int, routes []RouteDescription) error {
 	return httpServer.ListenAndServe()
 }
 
-func (server *Server) Stop() error {
+// Shutdown gracefully stops the server, waiting for in-flight requests to
+// finish until ctx is done. It returns ctx's error if requests are still
+// running at that point.
+func (server *Server) Shutdown(ctx context.Context) error {
 
 	if server.server != nil {
-		deadline, _ := context.WithTimeout(context.TODO(), 30*time.Second)
-		return server.server.Shutdown(deadline)
+		return server.server.Shutdown(ctx)
 	}
 
 	return nil
+}
+
+// Stop gracefully stops the server, waiting up to 30 seconds for in-flight
+// requests to finish. Use Shutdown to control the timeout.
+func (server *Server) Stop() error {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	return server.Shutdown(ctx)
 }
 
 //errorHandler overwrites global error handling of router
